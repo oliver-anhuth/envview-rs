@@ -1,5 +1,5 @@
 use iced::widget::{self, Column};
-use iced::{Result, Sandbox, Settings};
+use iced::{Element, Result, Sandbox, Settings};
 use std::env;
 
 fn main() -> Result {
@@ -9,11 +9,8 @@ fn main() -> Result {
 #[derive(Default, Debug)]
 struct Environment;
 
-#[derive(Copy, Clone, Debug)]
-enum Action {}
-
 impl Sandbox for Environment {
-    type Message = Action;
+    type Message = ();
 
     fn new() -> Self {
         Self::default()
@@ -25,11 +22,15 @@ impl Sandbox for Environment {
 
     fn update(&mut self, _message: Self::Message) {}
 
-    fn view(&self) -> iced::Element<'_, Self::Message> {
-        let mut col = Column::new();
+    fn view(&self) -> Element<'_, Self::Message> {
+        let mut vars = Column::new();
         for (name, value) in env::vars() {
-            col = col.push(widget::row![widget::text(name), widget::text(" = "), widget::text(value)]);
+            vars = vars.push(widget::row![
+                widget::text(name),
+                widget::text(" = "),
+                widget::text(value)
+            ]);
         }
-        widget::scrollable(col).into()
+        widget::scrollable(vars).into()
     }
 }
