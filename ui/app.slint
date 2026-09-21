@@ -1,0 +1,88 @@
+import { StandardTableView } from "std-widgets.slint";
+
+export component AppWindow inherits Window {
+    title: "Environment Variables";
+    preferred-width: 800px;
+    preferred-height: 600px;
+    default-font-family: "DejaVu Sans Mono";
+
+    in property <[[StandardListViewItem]]> rows;
+
+    // Row the user last interacted with (selected or right-clicked).
+    property <int> current: -1;
+
+    // Rust computes the exact string for (row, field) and calls back into copy().
+    // field: 0 = name, 1 = value, 2 = name=value
+    callback request-copy(int, int);
+    // Rust writes the given text to the system clipboard.
+    callback copy(string);
+
+    MenuBar {
+        Menu {
+            title: "File";
+            MenuItem {
+                title: "Close";
+                activated => { root.close(); }
+            }
+        }
+        Menu {
+            title: "Edit";
+            MenuItem {
+                title: "Copy Name";
+                enabled: root.current >= 0;
+                activated => { root.request-copy(root.current, 0); }
+            }
+            MenuItem {
+                title: "Copy Value";
+                enabled: root.current >= 0;
+                activated => { root.request-copy(root.current, 1); }
+            }
+            MenuItem {
+                title: "Copy Name=Value";
+                enabled: root.current >= 0;
+                activated => { root.request-copy(root.current, 2); }
+            }
+        }
+    }
+
+    menu := ContextMenuArea {
+        Menu {
+            MenuItem {
+                title: "Copy name";
+                enabled: root.current >= 0;
+                activated => { root.request-copy(root.current, 0); }
+            }
+            MenuItem {
+                title: "Copy value";
+                enabled: root.current >= 0;
+                activated => { root.request-copy(root.current, 1); }
+            }
+            MenuItem {
+                title: "Copy name=value";
+                enabled: root.current >= 0;
+                activated => { root.request-copy(root.current, 2); }
+            }
+        }
+
+        StandardTableView {
+            width: 100%;
+            height: 100%;
+            columns: [
+                { title: "Name", min-width: 150px },
+                { title: "Value" },
+            ];
+            rows: root.rows;
+            current-row-changed(idx) => { root.current = idx; }
+            row-pointer-event(row, event, pos) => {
+                // StandardTableView's own TouchAreas consume the right-click, so
+                // ContextMenuArea never sees it — open the menu programmatically.
+                // pos is relative to the table, which fills the same area as the menu.
+                if (event.kind == PointerEventKind.down
+                    && event.button == PointerEventButton.right) {
+                    root.current = row;
+                    menu.show(pos);
+                }
+            }
+        }
+    }
+}

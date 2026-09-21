@@ -1,7 +1,13 @@
 [package]
-name = "envview-iced"
+name = "envview-slint"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+rust-version = "1.98"
+build = "build.rs"
 
 [dependencies]
-iced = { version = "0.14.0", default-features = false, features = ["tiny-skia", "crisp", "web-colors", "thread-pool", "linux-theme-detection", "x11", "wayland"] }
+slint = "1.18"
+arboard = "3"
+
+[build-dependencies]
+slint-build = "1.18"
